@@ -3,7 +3,7 @@ import { FilterBy } from '../types/FilterBy';
 import cn from 'classnames';
 
 type Props = {
-  setfilterBy: React.Dispatch<React.SetStateAction<FilterBy>>;
+  setFilterBy: React.Dispatch<React.SetStateAction<FilterBy>>;
   filterBy: FilterBy;
   totalTodosActive: number;
   onDeleteCompleted: () => void;
@@ -11,7 +11,7 @@ type Props = {
 };
 
 export const Footer: React.FC<Props> = ({
-  setfilterBy,
+  setFilterBy,
   filterBy,
   onDeleteCompleted,
   totalTodosActive,
@@ -24,6 +24,7 @@ export const Footer: React.FC<Props> = ({
       <span className="todo-count" data-cy="TodosCounter">
         {totalTodosActive} items left
       </span>
+
       <nav className="filter" data-cy="Filter">
         {links.map(([key, value]) => (
           <a
@@ -31,12 +32,13 @@ export const Footer: React.FC<Props> = ({
             className={cn('filter__link', { selected: filterBy === value })}
             data-cy={`FilterLink${key}`}
             key={key}
-            onClick={() => setfilterBy(value)}
+            onClick={() => setFilterBy(value)}
           >
             {key}
           </a>
         ))}
       </nav>
+
       <button
         disabled={!hasTodoCompleted}
         type="button"

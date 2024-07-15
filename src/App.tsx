@@ -7,6 +7,8 @@ import { Header } from './components/Header';
 
 import { FilterBy } from './types/FilterBy';
 import { Todo } from './types/Todo';
+import { ErrorMessage } from './types/Error';
+
 import {
   USER_ID,
   createTodo,
@@ -14,12 +16,16 @@ import {
   getTodos,
   updateTodo,
 } from './api/todos';
-import { getTotalActiveTodos, isAllTodosCompleted } from './utils/Helpers';
+import {
+  getFilteredTodos,
+  getTotalActiveTodos,
+  isAllTodosDone,
+} from './utils/Helpers';
 
 export const App: React.FC = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [filterBy, setfilterBy] = useState<FilterBy>(FilterBy.All);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<ErrorMessage | null>(null);
   const [tempTodo, setTempTodo] = useState<Todo | null>(null);
   const [processingTodos, setProcessingTodos] = useState<number[]>([]);
 
@@ -28,23 +34,15 @@ export const App: React.FC = () => {
   useEffect(() => {
     getTodos()
       .then(setTodos)
-      .catch(() => setError('Unable to load todos'));
+      .catch(() => setError(ErrorMessage.load));
   }, []);
 
-  const filteredTodos = useMemo(() => {
-    return todos.filter(todo => {
-      switch (filterBy) {
-        case FilterBy.Active:
-          return !todo.completed;
-        case FilterBy.Completed:
-          return todo.completed;
-        default:
-          return true;
-      }
-    });
-  }, [filterBy, todos]);
+  const filteredTodos = useMemo(
+    () => getFilteredTodos(todos, filterBy),
+    [filterBy, todos],
+  );
 
-  const isAllCompleted = useMemo(() => isAllTodosCompleted(todos), [todos]);
+  const isAllTodosCompleted = useMemo(() => isAllTodosDone(todos), [todos]);
   const totalTodosActive = useMemo(() => getTotalActiveTodos(todos), [todos]);
 
   const onAddTodo = (title: string) => {
@@ -62,7 +60,7 @@ export const App: React.FC = () => {
         setTodos(prevTodos => [...prevTodos, newTodo]);
       })
       .catch(() => {
-        setError('Unable to add a todo');
+        setError(ErrorMessage.add);
         throw new Error();
       })
       .finally(() => {
@@ -78,7 +76,7 @@ export const App: React.FC = () => {
         setTodos(prevTodos => prevTodos.filter(todo => todo.id !== id));
         setProcessingTodos([]);
       })
-      .catch(() => setError('Unable to delete a todo'))
+      .catch(() => setError(ErrorMessage.delete))
       .finally(() => {
         fieldTitle.current?.focus();
       });
@@ -97,7 +95,7 @@ export const App: React.FC = () => {
                 prevTodos.filter(prevTodo => prevTodo.id !== todo.id),
               ),
             )
-            .catch(() => setError('Unable to delete a todo'));
+            .catch(() => setError(ErrorMessage.delete));
         }),
     ).then(() => {
       fieldTitle.current?.focus();
@@ -117,7 +115,7 @@ export const App: React.FC = () => {
         );
       })
       .catch(() => {
-        setError('Unable to update a todo');
+        setError(ErrorMessage.update);
         throw new Error();
       })
       .finally(() => setProcessingTodos([]));
@@ -125,19 +123,19 @@ export const App: React.FC = () => {
 
   const onChangeStatus = () => {
     const todoToToggle = todos.filter(
-      todo => todo.completed === isAllCompleted,
+      todo => todo.completed === isAllTodosCompleted,
     );
 
     todoToToggle.map(todo => {
       return onUpdateTodo({
         ...todo,
-        completed: !isAllCompleted,
+        completed: !isAllTodosCompleted,
       }).then(() =>
         setTodos(prevTodos =>
           prevTodos.map(prevTodo =>
-            prevTodo.completed === !isAllCompleted
+            prevTodo.completed === !isAllTodosCompleted
               ? prevTodo
-              : { ...prevTodo, completed: !isAllCompleted },
+              : { ...prevTodo, completed: !isAllTodosCompleted },
           ),
         ),
       );
@@ -154,13 +152,14 @@ export const App: React.FC = () => {
 
       <div className="todoapp__content">
         <Header
-          onAdd={onAddTodo}
-          isTodos={todos.length > 0}
-          isAllTodosCompleted={isAllCompleted}
+          onAddTodo={onAddTodo}
+          hasTodos={todos.length > 0}
+          isAllTodosCompleted={isAllTodosCompleted}
           setError={setError}
           fieldTitle={fieldTitle}
           onChangeStatus={onChangeStatus}
         />
+
         <TodoList
           todos={filteredTodos}
           tempTodo={tempTodo}
@@ -168,9 +167,10 @@ export const App: React.FC = () => {
           processingTodos={processingTodos}
           onUpdate={onUpdateTodo}
         />
+
         {!!todos.length && (
           <Footer
-            setfilterBy={setfilterBy}
+            setFilterBy={setfilterBy}
             filterBy={filterBy}
             totalTodosActive={totalTodosActive}
             onDeleteCompleted={onDeleteCompleted}

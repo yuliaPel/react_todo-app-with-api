@@ -18,6 +18,8 @@ export const TodoList: React.FC<Props> = ({
   processingTodos,
   onUpdate,
 }) => {
+  const TIMEOUT = 300;
+
   return (
     <section className="todoapp__main" data-cy="TodoList">
       <TransitionGroup>
@@ -33,7 +35,7 @@ export const TodoList: React.FC<Props> = ({
         ))}
 
         {tempTodo && (
-          <CSSTransition key={0} timeout={300} classNames="item">
+          <CSSTransition key={0} timeout={TIMEOUT} classNames="item">
             <Todo
               todo={tempTodo}
               onDelete={onDelete}

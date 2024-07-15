@@ -1,22 +1,23 @@
 import React, { useEffect, useState } from 'react';
 import cn from 'classnames';
+import { ErrorMessage } from '../types/Error';
 
 type Props = {
-  onAdd: (title: string) => Promise<void>;
+  onAddTodo: (title: string) => Promise<void>;
   isAllTodosCompleted: boolean;
-  setError: React.Dispatch<React.SetStateAction<string | null>>;
+  setError: React.Dispatch<React.SetStateAction<ErrorMessage | null>>;
   fieldTitle: React.RefObject<HTMLInputElement>;
   onChangeStatus: () => void;
-  isTodos: boolean;
+  hasTodos: boolean;
 };
 
 export const Header: React.FC<Props> = ({
-  onAdd,
+  onAddTodo,
   isAllTodosCompleted,
   setError,
   fieldTitle,
   onChangeStatus,
-  isTodos,
+  hasTodos,
 }) => {
   const [newTitle, setNewTitle] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -30,15 +31,16 @@ export const Header: React.FC<Props> = ({
     const title = newTitle.trim();
 
     if (!title) {
-      setError('Title should not be empty');
+      setError(ErrorMessage.title);
     } else {
       setIsSubmitting(true);
-      onAdd(title)
-        .then(() => setNewTitle(''))
-        .catch(() => {
-          return;
+      onAddTodo(title)
+        .then(() => {
+          setNewTitle('');
+          setIsSubmitting(false);
         })
-        .finally(() => {
+        .catch(() => {
+          setError(ErrorMessage.add);
           setIsSubmitting(false);
         });
     }
@@ -46,9 +48,9 @@ export const Header: React.FC<Props> = ({
 
   return (
     <header className="todoapp__header">
-      {isTodos && (
+      {hasTodos && (
         <button
-          onClick={() => onChangeStatus()}
+          onClick={onChangeStatus}
           type="button"
           className={cn('todoapp__toggle-all', { active: isAllTodosCompleted })}
           data-cy="ToggleAllButton"

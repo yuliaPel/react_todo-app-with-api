@@ -55,7 +55,7 @@ export const Todo: React.FC<Props> = ({
       return;
     }
 
-    if (title === '') {
+    if (!title) {
       onDelete(todo.id);
 
       return;
@@ -92,6 +92,7 @@ export const Todo: React.FC<Props> = ({
           onChange={handleOnChange}
         />
       </label>
+
       {!isEdit ? (
         <>
           <span
@@ -101,6 +102,7 @@ export const Todo: React.FC<Props> = ({
           >
             {todo.title}
           </span>
+
           <button
             type="button"
             className="todo__remove"

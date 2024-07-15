@@ -1,9 +1,10 @@
 import React, { useEffect } from 'react';
 import cn from 'classnames';
+import { ErrorMessage } from '../types/Error';
 
 type Props = {
-  error: string | null;
-  setError: React.Dispatch<React.SetStateAction<string | null>>;
+  error: ErrorMessage | null;
+  setError: React.Dispatch<React.SetStateAction<ErrorMessage | null>>;
 };
 
 export const ErrorNotification: React.FC<Props> = ({ error, setError }) => {
@@ -33,8 +34,6 @@ export const ErrorNotification: React.FC<Props> = ({ error, setError }) => {
         onClick={() => setError(null)}
       />
       {error}
-      {/*
-    Unable to update a todo */}
     </div>
   );
 };
